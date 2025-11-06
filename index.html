@@ -7,10 +7,10 @@
     <!-- Cargamos Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Importamos las fuentes de Google Fonts -->
+    <!-- Importamos las fuentes (NUEVAS AÑADIDAS) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Orbitron:wght@900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Bangers&family=Bebas+Neue&family=Orbitron:wght@900&family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <style>
         /* Estilos personalizados */
@@ -19,6 +19,9 @@
         .font-press-start { font-family: '"Press Start 2P"', cursive; }
         .font-bebas-neue { font-family: '"Bebas Neue"', cursive; }
         .font-anton { font-family: 'Anton', sans-serif; }
+        /* --- NUEVAS FUENTES --- */
+        .font-bangers { font-family: 'Bangers', cursive; }
+        .font-alfa-slab { font-family: 'Alfa Slab One', cursive; }
 
         body, html {
             background-color: #111827; /* bg-gray-900 */
@@ -43,7 +46,6 @@
             white-space: nowrap;
             box-sizing: border-box;
             position: absolute;
-            /* Agregamos text-align center para el modo estático */
             text-align: center;
         }
 
@@ -53,8 +55,7 @@
             font-weight: 900;
             text-transform: uppercase;
             display: inline-block;
-            /* La animación se controla ahora 100% con JS */
-            animation-name: none;
+            /* La animación se controla 100% con JS */
         }
 
         /* Animación de scroll (marquee) */
@@ -67,17 +68,14 @@
             }
         }
         
-        /* ********* NUEVO: Animación de Parpadeo ********* */
+        /* Animación de Parpadeo (Sigue igual) */
         @keyframes blink-effect {
             50% { opacity: 0.1; }
         }
-
-        .blinking {
-            /* 1s de duración, step-end para parpadeo duro */
-            animation: blink-effect 1s step-end infinite;
-        }
-        /* ******************************************* */
-
+        /* CORRECCIÓN: 
+           Quitamos la clase .blinking. 
+           Ahora JS aplicará 'animation: blink-effect...' directamente.
+        */
 
         #exit-btn {
             position: fixed;
@@ -100,7 +98,6 @@
             opacity: 1;
         }
         
-        /* ********* NUEVO: Estilo para el input de color ********* */
         #color-picker {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -121,7 +118,6 @@
             border-radius: 50%;
             border: 4px solid #4B5563; /* gray-600 */
         }
-        /* ************************************************ */
 
     </style>
 </head>
@@ -133,53 +129,63 @@
             
             <h1 class="text-3xl font-bold text-center mb-6 text-yellow-400">Panel LED Digital</h1>
             
-            <!-- Input del Mensaje -->
             <div class="mb-6">
                 <label for="message-input" class="block text-sm font-medium text-gray-300 mb-2">Tu Mensaje:</label>
                 <textarea id="message-input" rows="3" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none transition" placeholder="Escribe aquí..."></textarea>
             </div>
 
-            <!-- Selección de Fuente -->
+            <!-- --- CAMBIO: Selección de Fuente (Ahora 3x2) --- -->
             <fieldset class="mb-6">
                 <legend class="block text-sm font-medium text-gray-300 mb-3">Elige la Fuente:</legend>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <div>
                         <input type="radio" name="font-select" value="font-orbitron" id="font-1" class="hidden peer" checked>
-                        <label for="font-1" class="block p-4 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
-                            <span class="font-orbitron text-xl">Digital</span>
+                        <label for="font-1" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-orbitron text-lg">Digital</span>
                         </label>
                     </div>
                     <div>
                         <input type="radio" name="font-select" value="font-press-start" id="font-2" class="hidden peer">
-                        <label for="font-2" class="block p-4 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
-                            <span class="font-press-start text-sm">Pixel</span>
+                        <label for="font-2" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-press-start text-xs">Pixel</span>
                         </label>
                     </div>
                     <div>
                         <input type="radio" name="font-select" value="font-bebas-neue" id="font-3" class="hidden peer">
-                        <label for="font-3" class="block p-4 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
-                            <span class="font-bebas-neue text-2xl">Alto</span>
+                        <label for="font-3" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-bebas-neue text-xl">Alto</span>
                         </label>
                     </div>
                     <div>
                         <input type="radio" name="font-select" value="font-anton" id="font-4" class="hidden peer">
-                        <label for="font-4" class="block p-4 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
-                            <span class="font-anton text-2xl">Negrita</span>
+                        <label for="font-4" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-anton text-xl">Negrita</span>
+                        </label>
+                    </div>
+                    <!-- NUEVA -->
+                    <div>
+                        <input type="radio" name="font-select" value="font-bangers" id="font-5" class="hidden peer">
+                        <label for="font-5" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-bangers text-xl">Cómic</span>
+                        </label>
+                    </div>
+                    <!-- NUEVA -->
+                    <div>
+                        <input type="radio" name="font-select" value="font-alfa-slab" id="font-6" class="hidden peer">
+                        <label for="font-6" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-alfa-slab text-lg">Gruesa</span>
                         </label>
                     </div>
                 </div>
             </fieldset>
             
-            <!-- ********* ACTUALIZADO: Selector de Color Personalizado ********* -->
             <fieldset class="mb-6">
                 <legend class="block text-sm font-medium text-gray-300 mb-3 text-center">Elige tu Color:</legend>
                 <div class="flex justify-center">
                     <input type="color" id="color-picker" value="#FFFFFF">
                 </div>
             </fieldset>
-            <!-- ********************************************************** -->
 
-            <!-- Control de Velocidad -->
             <div class="mb-6">
                 <label for="speed-slider" class="block text-sm font-medium text-gray-300 mb-2">Velocidad del Texto:</label>
                 <input id="speed-slider" type="range" min="5" max="25" value="15" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-yellow-500">
@@ -189,9 +195,7 @@
                 </div>
             </div>
             
-            <!-- ********* NUEVO: Toggles de Efectos ********* -->
             <div class="grid grid-cols-2 gap-4 mb-8">
-                <!-- Toggle Modo Parpadeo -->
                 <label for="blink-toggle" class="flex flex-col items-center cursor-pointer">
                     <span class="text-sm font-medium text-gray-300 mb-2">Modo Parpadeo</span>
                     <div class="relative">
@@ -201,7 +205,6 @@
                     </div>
                 </label>
                 
-                <!-- Toggle Modo Estático -->
                 <label for="static-toggle" class="flex flex-col items-center cursor-pointer">
                     <span class="text-sm font-medium text-gray-300 mb-2">Modo Estático</span>
                     <div class="relative">
@@ -211,10 +214,8 @@
                     </div>
                 </label>
             </div>
-            <!-- ******************************************* -->
 
 
-            <!-- Botón de Inicio -->
             <button id="start-btn" class="w-full bg-yellow-500 text-gray-900 font-bold text-xl py-4 rounded-lg shadow-lg hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition transform hover:scale-105">
                 ¡MOSTRAR MENSAJE!
             </button>
@@ -242,16 +243,16 @@
         const startBtn = document.getElementById('start-btn');
         const exitBtn = document.getElementById('exit-btn');
         const speedSlider = document.getElementById('speed-slider');
-        
-        // --- NUEVOS Selectores ---
         const colorPicker = document.getElementById('color-picker');
         const blinkToggle = document.getElementById('blink-toggle');
         const staticToggle = document.getElementById('static-toggle');
         
-        // Ya no usamos clases de color
-        const fontClasses = ['font-orbitron', 'font-press-start', 'font-bebas-neue', 'font-anton'];
+        // --- Actualizada la lista de clases de fuentes ---
+        const fontClasses = [
+            'font-orbitron', 'font-press-start', 'font-bebas-neue', 
+            'font-anton', 'font-bangers', 'font-alfa-slab'
+        ];
         
-        // --- NUEVO: Clave para guardar en localStorage ---
         const settingsKey = 'ledPanelSettings';
 
         // --- Función para Abrir Fullscreen y Bloquear Orientación ---
@@ -283,7 +284,6 @@
             } catch (error) { console.warn("No se pudo desbloquear la orientación:", error); }
         }
         
-        // --- NUEVO: Función para Guardar Configuración ---
         function saveSettings() {
             const settings = {
                 message: messageInput.value,
@@ -296,7 +296,6 @@
             localStorage.setItem(settingsKey, JSON.stringify(settings));
         }
         
-        // --- NUEVO: Función para Cargar Configuración ---
         function loadSettings() {
             const saved = localStorage.getItem(settingsKey);
             if (saved) {
@@ -308,7 +307,6 @@
                 blinkToggle.checked = settings.isBlinking || false;
                 staticToggle.checked = settings.isStatic || false;
                 
-                // Cargar la fuente guardada
                 const savedFont = settings.font || 'font-orbitron';
                 // Asegurarnos de que el input exista antes de marcarlo
                 const fontInput = document.querySelector(`input[name="font-select"][value="${savedFont}"]`) || document.getElementById('font-1');
@@ -316,7 +314,6 @@
             }
         }
         
-        // --- Evento para Cargar Configuración al inicio ---
         document.addEventListener('DOMContentLoaded', loadSettings);
 
         // --- Event Listener para el Botón de INICIO (ACTUALIZADO) ---
@@ -329,54 +326,54 @@
             const isBlinking = blinkToggle.checked;
             const isStatic = staticToggle.checked;
             
-            // --- NUEVO: Guardar la configuración actual ---
             saveSettings();
 
             // 2. Aplicar los valores al texto
             displayText.innerText = message;
             
-            // 3. Aplicar Fuente (quitando las anteriores)
+            // 3. Aplicar Fuente
             displayText.classList.remove(...fontClasses);
             displayText.classList.add(selectedFont);
             
-            // 4. Aplicar Color (con estilo inline)
+            // 4. Aplicar Color
             displayText.style.color = selectedColor;
 
-            // 5. Aplicar Parpadeo
+            // --- *** CORRECCIÓN DE ANIMACIÓN *** ---
+            
+            // 5. Construir la cadena de animación
+            let animationSettings = [];
+            
+            // 5.1. Añadir parpadeo si está activo
             if (isBlinking) {
-                displayText.classList.add('blinking');
-            } else {
-                displayText.classList.remove('blinking');
+                animationSettings.push('blink-effect 1s step-end infinite');
             }
 
-            // 6. Aplicar Modo Estático o Movimiento
-            if (isStatic) {
-                // MODO ESTÁTICO
-                // Quitar animación y padding
-                displayText.style.animationName = 'none';
-                displayText.style.paddingLeft = '0';
-                // Permitir que el texto se parta (wrap) y se centre
-                displayTextContainer.style.whiteSpace = 'normal';
-                
-            } else {
-                // MODO MOVIMIENTO (default)
-                // Aplicar animación
-                displayText.style.animationName = 'scroll-left';
-                displayText.style.animationDuration = `${speed}s`;
-                displayText.style.animationTimingFunction = 'linear';
-                displayText.style.animationIterationCount = 'infinite';
-                // Añadir padding para que empiece fuera de la pantalla
+            // 5.2. Añadir movimiento si NO es estático
+            if (!isStatic) {
+                animationSettings.push(`scroll-left ${speed}s linear infinite`);
+                // Restaurar padding para que empiece fuera de pantalla
                 displayText.style.paddingLeft = '100%';
-                // Asegurar que no se parta el texto
                 displayTextContainer.style.whiteSpace = 'nowrap';
+            } else {
+                // Configurar para modo estático
+                displayText.style.paddingLeft = '0';
+                displayTextContainer.style.whiteSpace = 'normal';
             }
 
-            // 7. Cambiar de pantalla
+            // 5.3. Aplicar las animaciones combinadas (o ninguna)
+            if (animationSettings.length > 0) {
+                displayText.style.animation = animationSettings.join(', ');
+            } else {
+                displayText.style.animation = 'none'; // Estático y sin parpadeo
+            }
+            // --- *** FIN DE LA CORRECCIÓN *** ---
+
+            // 6. Cambiar de pantalla
             configScreen.classList.add('hidden');
             displayScreen.classList.remove('hidden');
             displayScreen.classList.add('flex');
 
-            // 8. Activar Fullscreen y bloqueo horizontal
+            // 7. Activar Fullscreen y bloqueo horizontal
             openFullscreenAndLock();
         });
 
@@ -388,9 +385,8 @@
             displayScreen.classList.remove('flex');
             configScreen.classList.remove('hidden');
             
-            // Apagamos animaciones al salir para ahorrar recursos
-            displayText.style.animationName = 'none';
-            displayText.classList.remove('blinking');
+            // Apagamos animaciones al salir
+            displayText.style.animation = 'none';
         });
         
         // --- Listener para salida de fullscreen (ej. tecla 'Esc') ---
@@ -402,8 +398,7 @@
                     configScreen.classList.remove('hidden');
                     
                     // Apagamos animaciones
-                    displayText.style.animationName = 'none';
-                    displayText.classList.remove('blinking');
+                    displayText.style.animation = 'none';
                     
                     try {
                         screen.orientation.unlock();
