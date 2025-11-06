@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel LED Digital</title>
+    <!-- Cargamos Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Importamos las fuentes de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Orbitron:wght@900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos personalizados para la pantalla LED */
+
+        /* Definimos las familias de fuentes para usarlas fácilmente */
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-press-start { font-family: '"Press Start 2P"', cursive; }
+        .font-bebas-neue { font-family: '"Bebas Neue"', cursive; }
+        .font-anton { font-family: 'Anton', sans-serif; }
+
+        /* Ocultar la barra de scroll en la pantalla completa */
+        body, html {
+            overflow: hidden;
+            background-color: #111827; /* bg-gray-900 */
+        }
+
+        /* La pantalla de visualización */
+        #display-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Muy importante para el efecto marquee */
+            z-index: 50;
+        }
+
+        /* Contenedor del texto que se va a mover */
+        #display-text-container {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            box-sizing: border-box;
+            position: absolute;
+        }
+
+        /* El texto en sí */
+        #display-text {
+            /* ESTA ES LA MAGIA: 
+               El tamaño de la fuente es 90% de la altura del viewport.
+               El line-height en 1 asegura que se ajuste verticalmente.
+            */
+            font-size: 90vh;
+            line-height: 1;
+            font-weight: 900;
+            text-transform: uppercase;
+            display: inline-block;
+            
+            /* Inicia 100% (del ancho del padre) fuera de la pantalla, a la derecha */
+            padding-left: 100%; 
+            
+            /* Aplicamos la animación */
+            animation: scroll-left 15s linear infinite;
+        }
+
+        /* Animación de scroll (marquee) */
+        @keyframes scroll-left {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                /* Se mueve a la izquierda su propio ancho (que incluye el padding-left) */
+                transform: translateX(-100%);
+            }
+        }
+
+        /* Botón para salir de la pantalla completa */
+        #exit-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.2;
+            transition: opacity 0.3s;
+        }
+        
+        #display-screen:hover #exit-btn {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+    <!-- Pantalla de Configuración -->
+    <div id="config-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-lg">
+            
+            <h1 class="text-3xl font-bold text-center mb-6 text-yellow-400">Panel LED Digital</h1>
+            
+            <!-- Input del Mensaje -->
+            <div class="mb-6">
+                <label for="message-input" class="block text-sm font-medium text-gray-300 mb-2">Tu Mensaje:</label>
+                <textarea id="message-input" rows="3" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none transition" placeholder="Escribe aquí..."></textarea>
+            </div>
+
+            <!-- Selección de Fuente -->
+            <fieldset class="mb-6">
+                <legend class="block text-sm font-medium text-gray-300 mb-3">Elige la Fuente:</legend>
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Opción 1 -->
+                    <div>
+                        <input type="radio" name="font-select" value="font-orbitron" id="font-1" class="hidden peer" checked>
+                        <label for="font-1" class="block p-4 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-orbitron text-xl">Digital</span>
+                        </label>
+                    </div>
+                    <!-- Opción 2 -->
+                    <div>
+                        <input type="radio" name="font-select" value="font-press-start" id="font-2" class="hidden peer">
+                        <label for="font-2" class="block p-4 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-press-start text-sm">Pixel</span>
+                        </label>
+                    </div>
+                    <!-- Opción 3 -->
+                    <div>
+                        <input type="radio" name="font-select" value="font-bebas-neue" id="font-3" class="hidden peer">
+                        <label for="font-3" class="block p-4 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-bebas-neue text-2xl">Alto</span>
+                        </label>
+                    </div>
+                    <!-- Opción 4 -->
+                    <div>
+                        <input type="radio" name="font-select" value="font-anton" id="font-4" class="hidden peer">
+                        <label for="font-4" class="block p-4 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
+                            <span class="font-anton text-2xl">Negrita</span>
+                        </label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- Selección de Color -->
+            <fieldset class="mb-8">
+                <legend class="block text-sm font-medium text-gray-300 mb-3">Elige el Color:</legend>
+                <div class="flex justify-center space-x-4">
+                    <!-- Blanco -->
+                    <div>
+                        <input type="radio" name="color-select" value="text-white" id="color-white" class="hidden peer" checked>
+                        <label for="color-white" class="block w-12 h-12 bg-white rounded-full cursor-pointer border-2 border-transparent peer-checked:ring-4 peer-checked:ring-offset-2 peer-checked:ring-offset-gray-800 peer-checked:ring-white transition"></label>
+                    </div>
+                    <!-- Rojo -->
+                    <div>
+                        <input type="radio" name="color-select" value="text-red-500" id="color-red" class="hidden peer">
+                        <label for="color-red" class="block w-12 h-12 bg-red-500 rounded-full cursor-pointer border-2 border-transparent peer-checked:ring-4 peer-checked:ring-offset-2 peer-checked:ring-offset-gray-800 peer-checked:ring-red-500 transition"></label>
+                    </div>
+                    <!-- Amarillo -->
+                    <div>
+                        <input type="radio" name="color-select" value="text-yellow-400" id="color-yellow" class="hidden peer">
+                        <label for="color-yellow" class="block w-12 h-12 bg-yellow-400 rounded-full cursor-pointer border-2 border-transparent peer-checked:ring-4 peer-checked:ring-offset-2 peer-checked:ring-offset-gray-800 peer-checked:ring-yellow-400 transition"></label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- Botón de Inicio -->
+            <button id="start-btn" class="w-full bg-yellow-500 text-gray-900 font-bold text-xl py-4 rounded-lg shadow-lg hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition transform hover:scale-105">
+                ¡MOSTRAR MENSAJE!
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Pantalla de Visualización (Inicialmente oculta) -->
+    <div id="display-screen" class="hidden">
+        <div id="display-text-container">
+            <span id="display-text"></span>
+        </div>
+        
+        <!-- Botón para Salir de Pantalla Completa -->
+        <button id="exit-btn" title="Salir de pantalla completa">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+
+    <script>
+        // --- Selección de Elementos DOM ---
+        const configScreen = document.getElementById('config-screen');
+        const displayScreen = document.getElementById('display-screen');
+        const messageInput = document.getElementById('message-input');
+        const displayText = document.getElementById('display-text');
+        const startBtn = document.getElementById('start-btn');
+        const exitBtn = document.getElementById('exit-btn');
+        
+        const colorOptions = document.querySelectorAll('input[name="color-select"]');
+        const fontOptions = document.querySelectorAll('input[name="font-select"]');
+
+        const colorClasses = ['text-white', 'text-red-500', 'text-yellow-400'];
+        const fontClasses = ['font-orbitron', 'font-press-start', 'font-bebas-neue', 'font-anton'];
+
+        // --- Función para Abrir Pantalla Completa y Bloquear Orientación ---
+        async function openFullscreenAndLock() {
+            const elem = document.documentElement; // El elemento <html>
+
+            // 1. Solicitar Pantalla Completa
+            if (elem.requestFullscreen) {
+                await elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) { /* Firefox */
+                await elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                await elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                await elem.msRequestFullscreen();
+            }
+
+            // 2. Bloquear Orientación a Horizontal
+            try {
+                // screen.orientation.lock() es la API moderna
+                await screen.orientation.lock('landscape-primary');
+            } catch (error) {
+                console.warn("No se pudo bloquear la orientación:", error);
+                // Esto puede fallar en navegadores de escritorio o si el usuario no da permiso
+            }
+        }
+
+        // --- Función para Cerrar Pantalla Completa y Desbloquear Orientación ---
+        async function closeFullscreenAndUnlock() {
+            // 1. Salir de Pantalla Completa
+            if (document.exitFullscreen) {
+                await document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) { /* Firefox */
+                await document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+                await document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE/Edge */
+                await document.msExitFullscreen();
+            }
+
+            // 2. Desbloquear Orientación
+            try {
+                screen.orientation.unlock();
+            } catch (error) {
+                console.warn("No se pudo desbloquear la orientación:", error);
+            }
+        }
+
+        // --- Event Listener para el Botón de INICIO ---
+        startBtn.addEventListener('click', () => {
+            // 1. Obtener los valores
+            const message = messageInput.value || "HOLA"; // Mensaje default
+            const selectedColor = document.querySelector('input[name="color-select"]:checked').value;
+            const selectedFont = document.querySelector('input[name="font-select"]:checked').value;
+
+            // 2. Aplicar los valores al texto de la pantalla LED
+            displayText.innerText = message;
+            
+            // 3. Limpiar clases anteriores y aplicar las nuevas
+            // Quitar clases de color anteriores
+            displayText.classList.remove(...colorClasses);
+            // Quitar clases de fuente anteriores
+            displayText.classList.remove(...fontClasses);
+            
+            // Añadir las clases seleccionadas
+            displayText.classList.add(selectedColor);
+            displayText.classList.add(selectedFont);
+
+            // 4. Cambiar de pantalla
+            configScreen.classList.add('hidden');
+            displayScreen.classList.remove('hidden');
+
+            // 5. Activar Fullscreen y bloqueo horizontal
+            openFullscreenAndLock();
+        });
+
+        // --- Event Listener para el Botón de SALIR ---
+        exitBtn.addEventListener('click', () => {
+            // 1. Salir de Fullscreen y desbloquear
+            closeFullscreenAndUnlock();
+
+            // 2. Cambiar de pantalla
+            displayScreen.classList.add('hidden');
+            configScreen.classList.remove('hidden');
+        });
+        
+        // --- Pequeño ajuste por si el usuario sale de fullscreen con la tecla 'Esc' ---
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                // Si salimos de fullscreen (ej. con ESC), forzamos el regreso al config
+                if (!displayScreen.classList.contains('hidden')) {
+                    displayScreen.classList.add('hidden');
+                    configScreen.classList.remove('hidden');
+                    // Estando en modo no-fullscreen, desbloqueamos la orientación
+                    try {
+                        screen.orientation.unlock();
+                    } catch(e) {}
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
