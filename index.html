@@ -21,9 +21,8 @@
         .font-bebas-neue { font-family: '"Bebas Neue"', cursive; }
         .font-anton { font-family: 'Anton', sans-serif; }
 
-        /* Ocultar la barra de scroll en la pantalla completa */
+        /* Estilos base del body */
         body, html {
-            overflow: hidden;
             background-color: #111827; /* bg-gray-900 */
         }
 
@@ -35,10 +34,15 @@
             width: 100vw;
             height: 100vh;
             background-color: #000;
-            display: flex;
+            /* CORRECCIÓN: 
+              Quité 'display: flex;' de aquí. 
+              Este era el error. Estaba sobreescribiendo la clase 'hidden'
+              y haciendo que esta pantalla se mostrara siempre.
+              Ahora el 'display: flex;' se agregará con JavaScript.
+            */
             justify-content: center;
             align-items: center;
-            overflow: hidden; /* Muy importante para el efecto marquee */
+            overflow: hidden; /* 'overflow: hidden' SÍ va aquí */
             z-index: 50;
         }
 
@@ -53,20 +57,12 @@
 
         /* El texto en sí */
         #display-text {
-            /* ESTA ES LA MAGIA: 
-               El tamaño de la fuente es 90% de la altura del viewport.
-               El line-height en 1 asegura que se ajuste verticalmente.
-            */
             font-size: 90vh;
             line-height: 1;
             font-weight: 900;
             text-transform: uppercase;
             display: inline-block;
-            
-            /* Inicia 100% (del ancho del padre) fuera de la pantalla, a la derecha */
             padding-left: 100%; 
-            
-            /* Aplicamos la animación */
             animation: scroll-left 15s linear infinite;
         }
 
@@ -76,7 +72,6 @@
                 transform: translateX(0);
             }
             100% {
-                /* Se mueve a la izquierda su propio ancho (que incluye el padding-left) */
                 transform: translateX(-100%);
             }
         }
@@ -107,7 +102,7 @@
 </head>
 <body class="bg-gray-900 text-white font-sans">
 
-    <!-- Pantalla de Configuración -->
+    <!-- Pantalla de Configuración (Ahora sí debe verse por default) -->
     <div id="config-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-lg">
             
@@ -184,7 +179,7 @@
         </div>
     </div>
 
-    <!-- Pantalla de Visualización (Inicialmente oculta) -->
+    <!-- Pantalla de Visualización (Inicialmente oculta con 'hidden' de Tailwind) -->
     <div id="display-screen" class="hidden">
         <div id="display-text-container">
             <span id="display-text"></span>
@@ -216,15 +211,20 @@
             const elem = document.documentElement; // El elemento <html>
 
             // 1. Solicitar Pantalla Completa
-            if (elem.requestFullscreen) {
-                await elem.requestFullscreen();
-            } else if (elem.mozRequestFullScreen) { /* Firefox */
-                await elem.mozRequestFullScreen();
-            } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                await elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE/Edge */
-                await elem.msRequestFullscreen();
+            try {
+                if (elem.requestFullscreen) {
+                    await elem.requestFullscreen();
+                } else if (elem.mozRequestFullScreen) { /* Firefox */
+                    await elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                    await elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                    await elem.msRequestFullscreen();
+                }
+            } catch(err) {
+                console.warn("No se pudo activar la pantalla completa:", err);
             }
+
 
             // 2. Bloquear Orientación a Horizontal
             try {
@@ -232,21 +232,24 @@
                 await screen.orientation.lock('landscape-primary');
             } catch (error) {
                 console.warn("No se pudo bloquear la orientación:", error);
-                // Esto puede fallar en navegadores de escritorio o si el usuario no da permiso
             }
         }
 
         // --- Función para Cerrar Pantalla Completa y Desbloquear Orientación ---
         async function closeFullscreenAndUnlock() {
             // 1. Salir de Pantalla Completa
-            if (document.exitFullscreen) {
-                await document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) { /* Firefox */
-                await document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
-                await document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) { /* IE/Edge */
-                await document.msExitFullscreen();
+             try {
+                if (document.exitFullscreen) {
+                    await document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { /* Firefox */
+                    await document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+                    await document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE/Edge */
+                    await document.msExitFullscreen();
+                }
+            } catch(err) {
+                console.warn("No se pudo salir de pantalla completa:", err);
             }
 
             // 2. Desbloquear Orientación
@@ -268,18 +271,19 @@
             displayText.innerText = message;
             
             // 3. Limpiar clases anteriores y aplicar las nuevas
-            // Quitar clases de color anteriores
             displayText.classList.remove(...colorClasses);
-            // Quitar clases de fuente anteriores
             displayText.classList.remove(...fontClasses);
-            
-            // Añadir las clases seleccionadas
             displayText.classList.add(selectedColor);
             displayText.classList.add(selectedFont);
 
             // 4. Cambiar de pantalla
             configScreen.classList.add('hidden');
+            
+            // CORRECCIÓN: 
+            // Quitamos 'hidden' (que es display: none) 
+            // y agregamos 'flex' (que es display: flex) para que se muestre.
             displayScreen.classList.remove('hidden');
+            displayScreen.classList.add('flex');
 
             // 5. Activar Fullscreen y bloqueo horizontal
             openFullscreenAndLock();
@@ -287,22 +291,30 @@
 
         // --- Event Listener para el Botón de SALIR ---
         exitBtn.addEventListener('click', () => {
-            // 1. Salir de Fullscreen y desbloquear
             closeFullscreenAndUnlock();
-
-            // 2. Cambiar de pantalla
+            
+            // CORRECCIÓN: Invertimos la lógica
+            // Ocultamos la pantalla LED (agregando 'hidden' y quitando 'flex')
+            // y mostramos la pantalla de config (quitando 'hidden')
             displayScreen.classList.add('hidden');
+            displayScreen.classList.remove('flex');
             configScreen.classList.remove('hidden');
         });
         
         // --- Pequeño ajuste por si el usuario sale de fullscreen con la tecla 'Esc' ---
         document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
+            if (!document.fullscreenElement && 
+                !document.mozFullScreenElement && 
+                !document.webkitFullscreenElement &&
+                !document.msFullscreenElement) {
+                
                 // Si salimos de fullscreen (ej. con ESC), forzamos el regreso al config
                 if (!displayScreen.classList.contains('hidden')) {
+                    // CORRECCIÓN: Mismo ajuste que en el botón de salir
                     displayScreen.classList.add('hidden');
+                    displayScreen.classList.remove('flex');
                     configScreen.classList.remove('hidden');
-                    // Estando en modo no-fullscreen, desbloqueamos la orientación
+                    
                     try {
                         screen.orientation.unlock();
                     } catch(e) {}
