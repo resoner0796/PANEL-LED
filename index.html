@@ -45,6 +45,7 @@
             box-sizing: border-box;
             position: absolute;
             text-align: center;
+            /* El transform (mirror) se aplica aquí */
         }
 
         #display-text {
@@ -53,17 +54,18 @@
             font-weight: 900;
             text-transform: uppercase; /* Se ajustará con JS */
             display: inline-block;
-            /* El transform se maneja por JS */
             /* La animación se maneja por JS */
         }
 
-        /* --- NUEVO: Animación Arcoíris --- */
+        /* --- CORRECCIÓN ARCOÍRIS --- */
+        /* La animación AHORA se aplica por JS */
         @keyframes rainbow-bg {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
+        /* La clase solo define el fondo y el clip */
         .rainbow-text {
             background: linear-gradient(270deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff);
             background-size: 1400% 100%;
@@ -71,13 +73,16 @@
             -moz-background-clip: text;
             -webkit-text-fill-color: transparent; 
             -moz-text-fill-color: transparent;
-            animation: rainbow-bg 10s ease infinite;
         }
-        /* --- FIN Arcoíris --- */
+        /* --- FIN CORRECCIÓN --- */
 
         @keyframes scroll-left {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
         }
         
         @keyframes blink-effect {
@@ -130,6 +135,16 @@
         input:disabled + .peer-disabled-label {
             opacity: 0.4;
             cursor: not-allowed;
+        }
+        
+        /* --- CORRECCIÓN EMOJI --- */
+        /* Cuando estamos en modo emoji, deshabilitamos el picker */
+        #color-picker:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        #color-picker:disabled::-webkit-color-swatch {
+            border-color: #374151; /* gray-700 */
         }
 
     </style>
@@ -192,7 +207,7 @@
             </fieldset>
             
             <fieldset class="mb-6">
-                <legend class="block text-sm font-medium text-gray-300 mb-3 text-center">Elige tu Color:</legend>
+                <legend id="color-picker-label" class="block text-sm font-medium text-gray-300 mb-3 text-center">Elige tu Color:</legend>
                 <div class="flex justify-center">
                     <input type="color" id="color-picker" value="#FFFFFF">
                 </div>
@@ -207,7 +222,7 @@
                 </div>
             </div>
             
-            <!-- --- NUEVO: Sección de Efectos --- -->
+            <!-- Sección de Efectos -->
             <fieldset class="mb-8">
                 <legend class="block text-sm font-medium text-gray-300 mb-3 text-center">Efectos Especiales</legend>
                 <div class="grid grid-cols-2 gap-y-5 gap-x-4">
@@ -233,7 +248,7 @@
                     </label>
 
                     <!-- Modo Arcoíris -->
-                    <label for="rainbow-toggle" class="flex flex-col items-center cursor-pointer">
+                    <label for="rainbow-toggle" id="rainbow-label" class="flex flex-col items-center cursor-pointer peer-disabled-label">
                         <span class="text-sm font-medium text-gray-300 mb-2">Modo Fiesta 🌈</span>
                         <div class="relative">
                             <input type="checkbox" id="rainbow-toggle" class="sr-only peer">
@@ -265,7 +280,6 @@
                     
                 </div>
             </fieldset>
-            <!-- --- FIN Sección de Efectos --- -->
 
 
             <button id="start-btn" class="w-full bg-yellow-500 text-gray-900 font-bold text-xl py-4 rounded-lg shadow-lg hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition transform hover:scale-105">
@@ -296,22 +310,24 @@
         const exitBtn = document.getElementById('exit-btn');
         const speedSlider = document.getElementById('speed-slider');
         const colorPicker = document.getElementById('color-picker');
+        const colorPickerLabel = document.getElementById('color-picker-label');
         
-        // --- Nuevos Toggles ---
+        // --- Toggles ---
         const blinkToggle = document.getElementById('blink-toggle');
         const staticToggle = document.getElementById('static-toggle');
         const staticLabel = document.getElementById('static-label');
         const rainbowToggle = document.getElementById('rainbow-toggle');
+        const rainbowLabel = document.getElementById('rainbow-label');
         const mirrorToggle = document.getElementById('mirror-toggle');
         const audioToggle = document.getElementById('audio-toggle');
         const audioHelperText = document.getElementById('audio-helper-text');
 
-        // --- Nuevas Globales para Audio ---
+        // --- Globales para Audio ---
         let audioContext;
         let analyser;
         let animationFrameId;
         let mediaStreamSource;
-        let audioStream; // Para poder pararlo
+        let audioStream; 
 
         // Regex para detectar solo Emojis (con soporte Unicode \p)
         const emojiOnlyRegex = /^[\p{Emoji}\s]+$/u;
@@ -351,74 +367,54 @@
             } catch (error) { console.warn("No se pudo desbloquear la orientación:", error); }
         }
         
-        // --- NUEVO: Funciones de Audio ---
-        
-        /**
-         * Inicia el analizador de audio del micrófono.
-         * Pide permiso, crea el contexto de audio y el analizador.
-         * Llama a la función draw() en un bucle.
-         */
+        // --- Funciones de Audio (sin cambios) ---
         async function startAudioReaction() {
-            if (audioContext) { // Si ya existe, no hacer nada
-                return;
-            }
+            if (audioContext) { return; }
             try {
-                // Pedir permiso al micrófono
                 audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256; // Calidad (potencia de 2)
+                analyser.fftSize = 256; 
                 
-                // Conectar el micrófono al analizador
                 mediaStreamSource = audioContext.createMediaStreamSource(audioStream);
                 mediaStreamSource.connect(analyser);
                 
                 const dataArray = new Uint8Array(analyser.frequencyBinCount);
                 
-                const isMirrored = mirrorToggle.checked; // Checar si el espejo está activo
-
-                // Bucle de animación
                 function draw() {
                     animationFrameId = requestAnimationFrame(draw);
-                    
                     analyser.getByteFrequencyData(dataArray);
                     
-                    // Calcular el volumen promedio
                     let sum = 0;
                     for(let i = 0; i < dataArray.length; i++) {
                         sum += dataArray[i];
                     }
                     let avg = sum / dataArray.length;
                     
-                    // Mapear el volumen a una escala
-                    // avg va de 0 a ~150. Mapeamos a una escala de 1.0 a 1.8
                     const scale = 1 + (avg / 128) * 0.8;
                     
-                    // Aplicar la escala Y el modo espejo si está activo
-                    const mirror = isMirrored ? ' scaleX(-1)' : '';
-                    displayText.style.transform = `scale(${scale})${mirror}`;
+                    // --- CORRECCIÓN ESPEJO ---
+                    // El espejo se aplica al *contenedor*,
+                    // así que aquí solo nos preocupamos de la escala.
+                    displayText.style.transform = `scale(${scale})`;
                 }
                 draw();
 
             } catch (err) {
                 console.error('Error al iniciar el micrófono:', err);
-                alert('No se pudo iniciar el micrófono. Asegúrate de dar permiso.');
-                // Apagar el toggle si falló
+                // Usamos un modal custom en lugar de alert
+                showModal('No se pudo iniciar el micrófono. Asegúrate de dar permiso.');
                 audioToggle.checked = false;
-                handleAudioToggle(); // Re-evaluar los toggles
+                handleAudioToggle();
             }
         }
         
-        /**
-         * Detiene el analizador de audio y el micrófono.
-         */
         function stopAudioReaction() {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
             }
             if (audioStream) {
-                // Detener la pista del micrófono (apagar el led)
                 audioStream.getTracks().forEach(track => track.stop());
                 audioStream = null;
             }
@@ -433,7 +429,7 @@
             analyser = null;
         }
 
-        // --- Funciones de Guardado (Actualizadas) ---
+        // --- Funciones de Guardado (sin cambios) ---
         function saveSettings() {
             const settings = {
                 message: messageInput.value,
@@ -442,7 +438,6 @@
                 speed: speedSlider.value,
                 isBlinking: blinkToggle.checked,
                 isStatic: staticToggle.checked,
-                // --- NUEVO ---
                 isRainbow: rainbowToggle.checked,
                 isMirrored: mirrorToggle.checked,
                 isAudio: audioToggle.checked
@@ -460,7 +455,6 @@
                 speedSlider.value = settings.speed || "15";
                 blinkToggle.checked = settings.isBlinking || false;
                 staticToggle.checked = settings.isStatic || false;
-                // --- NUEVO ---
                 rainbowToggle.checked = settings.isRainbow || false;
                 mirrorToggle.checked = settings.isMirrored || false;
                 audioToggle.checked = settings.isAudio || false;
@@ -471,45 +465,63 @@
                 
                 // Actualizar la UI de los toggles
                 handleAudioToggle();
+                checkEmojiMode(); // <- NUEVO: Checar si es emoji al cargar
             }
         }
         
         // --- Lógica de Toggles ---
-        /**
-         * El modo audio reactivo SOLO funciona en modo estático.
-         * Esta función deshabilita/habilita los toggles según la selección.
-         */
         function handleAudioToggle() {
             if (audioToggle.checked) {
-                // Si se activa audio:
-                // 1. Forzar y deshabilitar "Modo Estático"
                 staticToggle.checked = true;
                 staticToggle.disabled = true;
                 staticLabel.classList.add('peer-disabled-label');
-                // 2. Deshabilitar "Velocidad"
                 speedSlider.disabled = true;
-                // 3. Mostrar texto de ayuda
                 audioHelperText.classList.remove('hidden');
             } else {
-                // Si se desactiva audio:
-                // 1. Habilitar "Modo Estático"
                 staticToggle.disabled = false;
                 staticLabel.classList.remove('peer-disabled-label');
-                // 2. Habilitar "Velocidad"
                 speedSlider.disabled = false;
-                // 3. Ocultar texto de ayuda
                 audioHelperText.classList.add('hidden');
+            }
+        }
+        
+        // --- CORRECCIÓN EMOJI ---
+        /**
+         * Nueva función para deshabilitar controles de color si
+         * el texto es solo emojis.
+         */
+        function checkEmojiMode() {
+            const message = messageInput.value;
+            const isEmoji = emojiOnlyRegex.test(message.trim());
+
+            if (isEmoji) {
+                // Deshabilitar color picker y rainbow
+                colorPicker.disabled = true;
+                rainbowToggle.disabled = true;
+                rainbowLabel.classList.add('peer-disabled-label');
+                colorPickerLabel.classList.add('opacity-40');
+                
+                // Apagar el toggle de rainbow si estaba prendido
+                rainbowToggle.checked = false; 
+
+            } else {
+                // Habilitar
+                colorPicker.disabled = false;
+                rainbowToggle.disabled = false;
+                rainbowLabel.classList.remove('peer-disabled-label');
+                colorPickerLabel.classList.remove('opacity-40');
             }
         }
         
         // --- Event Listeners ---
         
         document.addEventListener('DOMContentLoaded', loadSettings);
-        
-        // Nuevo listener para el toggle de audio
         audioToggle.addEventListener('change', handleAudioToggle);
+        
+        // NUEVO: Checar emojis cada vez que el usuario escribe
+        messageInput.addEventListener('input', checkEmojiMode);
 
-        // --- Event Listener para el Botón de INICIO (Súper Actualizado) ---
+        // --- Event Listener para el Botón de INICIO (Súper Actualizado x2) ---
         startBtn.addEventListener('click', () => {
             // 1. Obtener los valores
             const message = messageInput.value || "HOLA";
@@ -517,14 +529,13 @@
             const selectedColor = colorPicker.value;
             const speed = speedSlider.value;
             
-            // --- Nuevos valores ---
             const isBlinking = blinkToggle.checked;
-            const isStatic = staticToggle.checked; // Ya está forzado si el audio está on
+            const isStatic = staticToggle.checked; 
             const isRainbow = rainbowToggle.checked;
             const isMirrored = mirrorToggle.checked;
             const isAudio = audioToggle.checked;
             
-            saveSettings(); // Guardar todo
+            saveSettings(); 
 
             // 2. Aplicar mensaje
             displayText.innerText = message;
@@ -533,85 +544,95 @@
             displayText.classList.remove(...fontClasses);
             displayText.classList.add(selectedFont);
             
-            // 4. --- NUEVO: Modo Emoji Gigante ---
-            if (emojiOnlyRegex.test(message.trim())) {
-                displayText.style.fontSize = '85vh'; // Un poco más pequeño para que quepa bien
-                displayText.style.textTransform = 'none'; // No hacer emojis mayúsculas
+            // --- CORRECCIÓN EMOJI Y COLOR ---
+            const isEmojiMode = emojiOnlyRegex.test(message.trim());
+
+            if (isEmojiMode) {
+                // MODO EMOJI: Sin colores
+                displayText.style.fontSize = '85vh'; 
+                displayText.style.textTransform = 'none';
+                
+                // Quitar cualquier color
+                displayText.classList.remove('rainbow-text');
+                displayText.style.color = ''; 
+                displayText.style.webkitTextFillColor = ''; 
             } else {
+                // MODO TEXTO: Aplicar colores
                 displayText.style.fontSize = '90vh';
                 displayText.style.textTransform = 'uppercase';
-            }
 
-            // 5. --- NUEVO: Lógica de Color (Arcoíris o Sólido) ---
-            if (isRainbow) {
-                displayText.classList.add('rainbow-text');
-                displayText.style.color = ''; // Quitar color sólido
-                displayText.style.webkitTextFillColor = 'transparent'; // Necesario para background-clip
-            } else {
-                displayText.classList.remove('rainbow-text');
-                displayText.style.color = selectedColor; // Poner color sólido
-                displayText.style.webkitTextFillColor = ''; // Restablecer
+                if (isRainbow) {
+                    displayText.classList.add('rainbow-text');
+                    displayText.style.color = ''; 
+                    displayText.style.webkitTextFillColor = 'transparent'; 
+                } else {
+                    displayText.classList.remove('rainbow-text');
+                    displayText.style.color = selectedColor; 
+                    displayText.style.webkitTextFillColor = ''; 
+                }
             }
+            // --- FIN CORRECCIÓN ---
             
-            // 6. --- NUEVO: Lógica de Animación, Transformación y Audio ---
-            
-            stopAudioReaction(); // Detener cualquier audio anterior
+            // --- CORRECCIÓN ESPEJO ---
+            // Aplicar al CONTENEDOR
+            if (isMirrored) {
+                displayTextContainer.style.transform = 'scaleX(-1)';
+            } else {
+                displayTextContainer.style.transform = 'none';
+            }
+            // --- FIN CORRECCIÓN ---
+
+
+            // 6. Lógica de Animación, Transformación y Audio
+            stopAudioReaction(); 
             
             let animationSettings = [];
-            let transformSettings = [];
-
-            // 6.1. Modo Espejo (siempre se aplica si está on)
-            if (isMirrored) {
-                transformSettings.push('scaleX(-1)');
-            }
-
-            // 6.2. Modo Parpadeo (siempre se aplica si está on)
+            
+            // 6.1. Parpadeo
             if (isBlinking) {
                 animationSettings.push('blink-effect 1s step-end infinite');
+            }
+            
+            // 6.2. --- CORRECCIÓN ARCOÍRIS ---
+            // (Solo si no es emoji)
+            if (isRainbow && !isEmojiMode) {
+                animationSettings.push('rainbow-bg 10s ease infinite');
             }
 
             // 6.3. Lógica principal: Audio, Movimiento o Estático
             if (isAudio && isStatic) {
                 // --- MODO AUDIO REACTIVO ---
-                // (Solo funciona si es estático)
-                startAudioReaction(); // Inicia el micrófono y el bucle 'draw'
-                // El bucle 'draw' se encargará del transform (scale y mirror)
+                startAudioReaction(); 
                 
                 // Configurar para estático
                 displayText.style.paddingLeft = '0';
                 displayTextContainer.style.whiteSpace = 'normal';
+                
+                // El transform (scale) lo maneja el bucle draw()
+                // El transform (mirror) ya está en el contenedor
                 
             } else if (!isStatic) {
                 // --- MODO MOVIMIENTO ---
-                // (Audio NO está activo, o no es estático)
                 animationSettings.push(`scroll-left ${speed}s linear infinite`);
                 
-                // Configurar para movimiento
                 displayText.style.paddingLeft = '100%';
                 displayTextContainer.style.whiteSpace = 'nowrap';
                 
-                // Aplicar transform (solo espejo, ya que no hay audio)
-                displayText.style.transform = transformSettings.join(' ');
-
+                // Resetear transform de audio
+                displayText.style.transform = 'none'; 
+                
             } else {
                 // --- MODO ESTÁTICO ---
-                // (Sin audio y sin movimiento)
-                
-                // Configurar para estático
                 displayText.style.paddingLeft = '0';
                 displayTextContainer.style.whiteSpace = 'normal';
                 
-                // Aplicar transform (solo espejo, ya que no hay audio)
-                displayText.style.transform = transformSettings.join(' ');
+                // Resetear transform de audio
+                displayText.style.transform = 'none';
             }
 
             // 6.4. Aplicar la cadena de animación final
-            if (animationSettings.length > 0) {
-                displayText.style.animation = animationSettings.join(', ');
-            } else {
-                displayText.style.animation = 'none';
-            }
-            // --- FIN Lógica de Animación ---
+            displayText.style.animation = animationSettings.join(', ');
+
             
             // 7. Cambiar de pantalla
             configScreen.classList.add('hidden');
@@ -625,29 +646,33 @@
         // --- Event Listener para el Botón de SALIR (Actualizado) ---
         exitBtn.addEventListener('click', () => {
             closeFullscreenAndUnlock();
-            stopAudioReaction(); // ¡Importante apagar el mic!
+            stopAudioReaction(); 
             
             displayScreen.classList.add('hidden');
             displayScreen.classList.remove('flex');
             configScreen.classList.remove('hidden');
             
+            // Resetear estilos
             displayText.style.animation = 'none';
             displayText.style.transform = 'none';
+            displayTextContainer.style.transform = 'none'; // <- Resetear espejo
         });
         
         // --- Listener para salida de fullscreen (Actualizado) ---
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) {
                 if (!displayScreen.classList.contains('hidden')) {
-                    stopAudioReaction(); // ¡Importante apagar el mic!
-                    closeFullscreenAndUnlock(); // Asegurar que desbloquee orientación
+                    stopAudioReaction();
+                    closeFullscreenAndUnlock();
                     
                     displayScreen.classList.add('hidden');
                     displayScreen.classList.remove('flex');
                     configScreen.classList.remove('hidden');
                     
+                    // Resetear estilos
                     displayText.style.animation = 'none';
                     displayText.style.transform = 'none';
+                    displayTextContainer.style.transform = 'none'; // <- Resetear espejo
                 }
             }
         });
