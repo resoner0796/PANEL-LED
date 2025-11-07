@@ -7,19 +7,17 @@
     <!-- Cargamos Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Importamos las fuentes (NUEVAS AÑADIDAS) -->
+    <!-- Importamos las fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Bangers&family=Bebas+Neue&family=Orbitron:wght@900&family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <style>
         /* Estilos personalizados */
-
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         .font-press-start { font-family: '"Press Start 2P"', cursive; }
         .font-bebas-neue { font-family: '"Bebas Neue"', cursive; }
         .font-anton { font-family: 'Anton', sans-serif; }
-        /* --- NUEVAS FUENTES --- */
         .font-bangers { font-family: 'Bangers', cursive; }
         .font-alfa-slab { font-family: 'Alfa Slab One', cursive; }
 
@@ -50,32 +48,41 @@
         }
 
         #display-text {
-            font-size: 90vh;
+            font-size: 90vh; /* Se ajustará con JS */
             line-height: 1;
             font-weight: 900;
-            text-transform: uppercase;
+            text-transform: uppercase; /* Se ajustará con JS */
             display: inline-block;
-            /* La animación se controla 100% con JS */
+            /* El transform se maneja por JS */
+            /* La animación se maneja por JS */
         }
 
-        /* Animación de scroll (marquee) */
+        /* --- NUEVO: Animación Arcoíris --- */
+        @keyframes rainbow-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .rainbow-text {
+            background: linear-gradient(270deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff);
+            background-size: 1400% 100%;
+            -webkit-background-clip: text;
+            -moz-background-clip: text;
+            -webkit-text-fill-color: transparent; 
+            -moz-text-fill-color: transparent;
+            animation: rainbow-bg 10s ease infinite;
+        }
+        /* --- FIN Arcoíris --- */
+
         @keyframes scroll-left {
-            0% {
-                transform: translateX(0);
-            }
-            100% {
-                transform: translateX(-100%);
-            }
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
         }
         
-        /* Animación de Parpadeo (Sigue igual) */
         @keyframes blink-effect {
             50% { opacity: 0.1; }
         }
-        /* CORRECCIÓN: 
-           Quitamos la clase .blinking. 
-           Ahora JS aplicará 'animation: blink-effect...' directamente.
-        */
 
         #exit-btn {
             position: fixed;
@@ -118,6 +125,12 @@
             border-radius: 50%;
             border: 4px solid #4B5563; /* gray-600 */
         }
+        
+        /* Estilo para los toggles deshabilitados */
+        input:disabled + .peer-disabled-label {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
     </style>
 </head>
@@ -130,14 +143,14 @@
             <h1 class="text-3xl font-bold text-center mb-6 text-yellow-400">Panel LED Digital</h1>
             
             <div class="mb-6">
-                <label for="message-input" class="block text-sm font-medium text-gray-300 mb-2">Tu Mensaje:</label>
+                <label for="message-input" class="block text-sm font-medium text-gray-300 mb-2">Tu Mensaje: (¡Prueba con emojis! 🥳)</label>
                 <textarea id="message-input" rows="3" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none transition" placeholder="Escribe aquí..."></textarea>
             </div>
 
-            <!-- --- CAMBIO: Selección de Fuente (Ahora 3x2) --- -->
             <fieldset class="mb-6">
                 <legend class="block text-sm font-medium text-gray-300 mb-3">Elige la Fuente:</legend>
                 <div class="grid grid-cols-3 gap-3">
+                    <!-- Fila 1 -->
                     <div>
                         <input type="radio" name="font-select" value="font-orbitron" id="font-1" class="hidden peer" checked>
                         <label for="font-1" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
@@ -156,20 +169,19 @@
                             <span class="font-bebas-neue text-xl">Alto</span>
                         </label>
                     </div>
+                    <!-- Fila 2 -->
                     <div>
                         <input type="radio" name="font-select" value="font-anton" id="font-4" class="hidden peer">
                         <label for="font-4" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
                             <span class="font-anton text-xl">Negrita</span>
                         </label>
                     </div>
-                    <!-- NUEVA -->
                     <div>
                         <input type="radio" name="font-select" value="font-bangers" id="font-5" class="hidden peer">
                         <label for="font-5" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
                             <span class="font-bangers text-xl">Cómic</span>
                         </label>
                     </div>
-                    <!-- NUEVA -->
                     <div>
                         <input type="radio" name="font-select" value="font-alfa-slab" id="font-6" class="hidden peer">
                         <label for="font-6" class="block p-3 text-center bg-gray-700 rounded-lg cursor-pointer peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-gray-600 transition">
@@ -195,25 +207,65 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <label for="blink-toggle" class="flex flex-col items-center cursor-pointer">
-                    <span class="text-sm font-medium text-gray-300 mb-2">Modo Parpadeo</span>
-                    <div class="relative">
-                        <input type="checkbox" id="blink-toggle" class="sr-only peer">
-                        <div class="block w-14 h-8 bg-gray-600 rounded-full peer-checked:bg-yellow-500 transition"></div>
-                        <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform peer-checked:translate-x-6"></div>
-                    </div>
-                </label>
-                
-                <label for="static-toggle" class="flex flex-col items-center cursor-pointer">
-                    <span class="text-sm font-medium text-gray-300 mb-2">Modo Estático</span>
-                    <div class="relative">
-                        <input type="checkbox" id="static-toggle" class="sr-only peer">
-                        <div class="block w-14 h-8 bg-gray-600 rounded-full peer-checked:bg-yellow-500 transition"></div>
-                        <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform peer-checked:translate-x-6"></div>
-                    </div>
-                </label>
-            </div>
+            <!-- --- NUEVO: Sección de Efectos --- -->
+            <fieldset class="mb-8">
+                <legend class="block text-sm font-medium text-gray-300 mb-3 text-center">Efectos Especiales</legend>
+                <div class="grid grid-cols-2 gap-y-5 gap-x-4">
+                    
+                    <!-- Modo Parpadeo -->
+                    <label for="blink-toggle" class="flex flex-col items-center cursor-pointer">
+                        <span class="text-sm font-medium text-gray-300 mb-2">Modo Parpadeo</span>
+                        <div class="relative">
+                            <input type="checkbox" id="blink-toggle" class="sr-only peer">
+                            <div class="block w-14 h-8 bg-gray-600 rounded-full peer-checked:bg-yellow-500 transition"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform peer-checked:translate-x-6"></div>
+                        </div>
+                    </label>
+                    
+                    <!-- Modo Estático -->
+                    <label for="static-toggle" id="static-label" class="flex flex-col items-center cursor-pointer peer-disabled-label">
+                        <span class="text-sm font-medium text-gray-300 mb-2">Modo Estático</span>
+                        <div class="relative">
+                            <input type="checkbox" id="static-toggle" class="sr-only peer">
+                            <div class="block w-14 h-8 bg-gray-600 rounded-full peer-checked:bg-yellow-500 transition"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform peer-checked:translate-x-6"></div>
+                        </div>
+                    </label>
+
+                    <!-- Modo Arcoíris -->
+                    <label for="rainbow-toggle" class="flex flex-col items-center cursor-pointer">
+                        <span class="text-sm font-medium text-gray-300 mb-2">Modo Fiesta 🌈</span>
+                        <div class="relative">
+                            <input type="checkbox" id="rainbow-toggle" class="sr-only peer">
+                            <div class="block w-14 h-8 bg-gray-600 rounded-full peer-checked:bg-pink-500 transition"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform peer-checked:translate-x-6"></div>
+                        </div>
+                    </label>
+                    
+                    <!-- Modo Espejo -->
+                    <label for="mirror-toggle" class="flex flex-col items-center cursor-pointer">
+                        <span class="text-sm font-medium text-gray-300 mb-2">Modo Espejo</span>
+                        <div class="relative">
+                            <input type="checkbox" id="mirror-toggle" class="sr-only peer">
+                            <div class="block w-14 h-8 bg-gray-600 rounded-full peer-checked:bg-cyan-500 transition"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform peer-checked:translate-x-6"></div>
+                        </div>
+                    </label>
+                    
+                    <!-- Modo Audio Reactivo -->
+                    <label for="audio-toggle" class="flex flex-col items-center cursor-pointer col-span-2">
+                        <span class="text-sm font-medium text-gray-300 mb-2">Modo Audio Reactivo 🎤</span>
+                        <div class="relative">
+                            <input type="checkbox" id="audio-toggle" class="sr-only peer">
+                            <div class="block w-14 h-8 bg-gray-600 rounded-full peer-checked:bg-purple-500 transition"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform peer-checked:translate-x-6"></div>
+                        </div>
+                        <span id="audio-helper-text" class="text-xs text-gray-400 mt-2 hidden">(Requiere Modo Estático)</span>
+                    </label>
+                    
+                </div>
+            </fieldset>
+            <!-- --- FIN Sección de Efectos --- -->
 
 
             <button id="start-btn" class="w-full bg-yellow-500 text-gray-900 font-bold text-xl py-4 rounded-lg shadow-lg hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition transform hover:scale-105">
@@ -244,10 +296,26 @@
         const exitBtn = document.getElementById('exit-btn');
         const speedSlider = document.getElementById('speed-slider');
         const colorPicker = document.getElementById('color-picker');
+        
+        // --- Nuevos Toggles ---
         const blinkToggle = document.getElementById('blink-toggle');
         const staticToggle = document.getElementById('static-toggle');
+        const staticLabel = document.getElementById('static-label');
+        const rainbowToggle = document.getElementById('rainbow-toggle');
+        const mirrorToggle = document.getElementById('mirror-toggle');
+        const audioToggle = document.getElementById('audio-toggle');
+        const audioHelperText = document.getElementById('audio-helper-text');
+
+        // --- Nuevas Globales para Audio ---
+        let audioContext;
+        let analyser;
+        let animationFrameId;
+        let mediaStreamSource;
+        let audioStream; // Para poder pararlo
+
+        // Regex para detectar solo Emojis (con soporte Unicode \p)
+        const emojiOnlyRegex = /^[\p{Emoji}\s]+$/u;
         
-        // --- Actualizada la lista de clases de fuentes ---
         const fontClasses = [
             'font-orbitron', 'font-press-start', 'font-bebas-neue', 
             'font-anton', 'font-bangers', 'font-alfa-slab'
@@ -255,7 +323,7 @@
         
         const settingsKey = 'ledPanelSettings';
 
-        // --- Función para Abrir Fullscreen y Bloquear Orientación ---
+        // --- Funciones Fullscreen (sin cambios) ---
         async function openFullscreenAndLock() {
             const elem = document.documentElement; 
             try {
@@ -270,7 +338,6 @@
             } catch (error) { console.warn("No se pudo bloquear la orientación:", error); }
         }
 
-        // --- Función para Cerrar Fullscreen y Desbloquear Orientación ---
         async function closeFullscreenAndUnlock() {
              try {
                 if (document.exitFullscreen) { await document.exitFullscreen(); }
@@ -284,6 +351,89 @@
             } catch (error) { console.warn("No se pudo desbloquear la orientación:", error); }
         }
         
+        // --- NUEVO: Funciones de Audio ---
+        
+        /**
+         * Inicia el analizador de audio del micrófono.
+         * Pide permiso, crea el contexto de audio y el analizador.
+         * Llama a la función draw() en un bucle.
+         */
+        async function startAudioReaction() {
+            if (audioContext) { // Si ya existe, no hacer nada
+                return;
+            }
+            try {
+                // Pedir permiso al micrófono
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256; // Calidad (potencia de 2)
+                
+                // Conectar el micrófono al analizador
+                mediaStreamSource = audioContext.createMediaStreamSource(audioStream);
+                mediaStreamSource.connect(analyser);
+                
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                const isMirrored = mirrorToggle.checked; // Checar si el espejo está activo
+
+                // Bucle de animación
+                function draw() {
+                    animationFrameId = requestAnimationFrame(draw);
+                    
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    // Calcular el volumen promedio
+                    let sum = 0;
+                    for(let i = 0; i < dataArray.length; i++) {
+                        sum += dataArray[i];
+                    }
+                    let avg = sum / dataArray.length;
+                    
+                    // Mapear el volumen a una escala
+                    // avg va de 0 a ~150. Mapeamos a una escala de 1.0 a 1.8
+                    const scale = 1 + (avg / 128) * 0.8;
+                    
+                    // Aplicar la escala Y el modo espejo si está activo
+                    const mirror = isMirrored ? ' scaleX(-1)' : '';
+                    displayText.style.transform = `scale(${scale})${mirror}`;
+                }
+                draw();
+
+            } catch (err) {
+                console.error('Error al iniciar el micrófono:', err);
+                alert('No se pudo iniciar el micrófono. Asegúrate de dar permiso.');
+                // Apagar el toggle si falló
+                audioToggle.checked = false;
+                handleAudioToggle(); // Re-evaluar los toggles
+            }
+        }
+        
+        /**
+         * Detiene el analizador de audio y el micrófono.
+         */
+        function stopAudioReaction() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (audioStream) {
+                // Detener la pista del micrófono (apagar el led)
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
+            }
+            if (mediaStreamSource) {
+                mediaStreamSource.disconnect();
+                mediaStreamSource = null;
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            analyser = null;
+        }
+
+        // --- Funciones de Guardado (Actualizadas) ---
         function saveSettings() {
             const settings = {
                 message: messageInput.value,
@@ -291,7 +441,11 @@
                 color: colorPicker.value,
                 speed: speedSlider.value,
                 isBlinking: blinkToggle.checked,
-                isStatic: staticToggle.checked
+                isStatic: staticToggle.checked,
+                // --- NUEVO ---
+                isRainbow: rainbowToggle.checked,
+                isMirrored: mirrorToggle.checked,
+                isAudio: audioToggle.checked
             };
             localStorage.setItem(settingsKey, JSON.stringify(settings));
         }
@@ -306,103 +460,194 @@
                 speedSlider.value = settings.speed || "15";
                 blinkToggle.checked = settings.isBlinking || false;
                 staticToggle.checked = settings.isStatic || false;
+                // --- NUEVO ---
+                rainbowToggle.checked = settings.isRainbow || false;
+                mirrorToggle.checked = settings.isMirrored || false;
+                audioToggle.checked = settings.isAudio || false;
                 
                 const savedFont = settings.font || 'font-orbitron';
-                // Asegurarnos de que el input exista antes de marcarlo
                 const fontInput = document.querySelector(`input[name="font-select"][value="${savedFont}"]`) || document.getElementById('font-1');
                 fontInput.checked = true;
+                
+                // Actualizar la UI de los toggles
+                handleAudioToggle();
             }
         }
         
+        // --- Lógica de Toggles ---
+        /**
+         * El modo audio reactivo SOLO funciona en modo estático.
+         * Esta función deshabilita/habilita los toggles según la selección.
+         */
+        function handleAudioToggle() {
+            if (audioToggle.checked) {
+                // Si se activa audio:
+                // 1. Forzar y deshabilitar "Modo Estático"
+                staticToggle.checked = true;
+                staticToggle.disabled = true;
+                staticLabel.classList.add('peer-disabled-label');
+                // 2. Deshabilitar "Velocidad"
+                speedSlider.disabled = true;
+                // 3. Mostrar texto de ayuda
+                audioHelperText.classList.remove('hidden');
+            } else {
+                // Si se desactiva audio:
+                // 1. Habilitar "Modo Estático"
+                staticToggle.disabled = false;
+                staticLabel.classList.remove('peer-disabled-label');
+                // 2. Habilitar "Velocidad"
+                speedSlider.disabled = false;
+                // 3. Ocultar texto de ayuda
+                audioHelperText.classList.add('hidden');
+            }
+        }
+        
+        // --- Event Listeners ---
+        
         document.addEventListener('DOMContentLoaded', loadSettings);
+        
+        // Nuevo listener para el toggle de audio
+        audioToggle.addEventListener('change', handleAudioToggle);
 
-        // --- Event Listener para el Botón de INICIO (ACTUALIZADO) ---
+        // --- Event Listener para el Botón de INICIO (Súper Actualizado) ---
         startBtn.addEventListener('click', () => {
             // 1. Obtener los valores
             const message = messageInput.value || "HOLA";
             const selectedFont = document.querySelector('input[name="font-select"]:checked').value;
             const selectedColor = colorPicker.value;
             const speed = speedSlider.value;
-            const isBlinking = blinkToggle.checked;
-            const isStatic = staticToggle.checked;
             
-            saveSettings();
+            // --- Nuevos valores ---
+            const isBlinking = blinkToggle.checked;
+            const isStatic = staticToggle.checked; // Ya está forzado si el audio está on
+            const isRainbow = rainbowToggle.checked;
+            const isMirrored = mirrorToggle.checked;
+            const isAudio = audioToggle.checked;
+            
+            saveSettings(); // Guardar todo
 
-            // 2. Aplicar los valores al texto
+            // 2. Aplicar mensaje
             displayText.innerText = message;
             
             // 3. Aplicar Fuente
             displayText.classList.remove(...fontClasses);
             displayText.classList.add(selectedFont);
             
-            // 4. Aplicar Color
-            displayText.style.color = selectedColor;
+            // 4. --- NUEVO: Modo Emoji Gigante ---
+            if (emojiOnlyRegex.test(message.trim())) {
+                displayText.style.fontSize = '85vh'; // Un poco más pequeño para que quepa bien
+                displayText.style.textTransform = 'none'; // No hacer emojis mayúsculas
+            } else {
+                displayText.style.fontSize = '90vh';
+                displayText.style.textTransform = 'uppercase';
+            }
 
-            // --- *** CORRECCIÓN DE ANIMACIÓN *** ---
+            // 5. --- NUEVO: Lógica de Color (Arcoíris o Sólido) ---
+            if (isRainbow) {
+                displayText.classList.add('rainbow-text');
+                displayText.style.color = ''; // Quitar color sólido
+                displayText.style.webkitTextFillColor = 'transparent'; // Necesario para background-clip
+            } else {
+                displayText.classList.remove('rainbow-text');
+                displayText.style.color = selectedColor; // Poner color sólido
+                displayText.style.webkitTextFillColor = ''; // Restablecer
+            }
             
-            // 5. Construir la cadena de animación
+            // 6. --- NUEVO: Lógica de Animación, Transformación y Audio ---
+            
+            stopAudioReaction(); // Detener cualquier audio anterior
+            
             let animationSettings = [];
-            
-            // 5.1. Añadir parpadeo si está activo
+            let transformSettings = [];
+
+            // 6.1. Modo Espejo (siempre se aplica si está on)
+            if (isMirrored) {
+                transformSettings.push('scaleX(-1)');
+            }
+
+            // 6.2. Modo Parpadeo (siempre se aplica si está on)
             if (isBlinking) {
                 animationSettings.push('blink-effect 1s step-end infinite');
             }
 
-            // 5.2. Añadir movimiento si NO es estático
-            if (!isStatic) {
-                animationSettings.push(`scroll-left ${speed}s linear infinite`);
-                // Restaurar padding para que empiece fuera de pantalla
-                displayText.style.paddingLeft = '100%';
-                displayTextContainer.style.whiteSpace = 'nowrap';
-            } else {
-                // Configurar para modo estático
+            // 6.3. Lógica principal: Audio, Movimiento o Estático
+            if (isAudio && isStatic) {
+                // --- MODO AUDIO REACTIVO ---
+                // (Solo funciona si es estático)
+                startAudioReaction(); // Inicia el micrófono y el bucle 'draw'
+                // El bucle 'draw' se encargará del transform (scale y mirror)
+                
+                // Configurar para estático
                 displayText.style.paddingLeft = '0';
                 displayTextContainer.style.whiteSpace = 'normal';
+                
+            } else if (!isStatic) {
+                // --- MODO MOVIMIENTO ---
+                // (Audio NO está activo, o no es estático)
+                animationSettings.push(`scroll-left ${speed}s linear infinite`);
+                
+                // Configurar para movimiento
+                displayText.style.paddingLeft = '100%';
+                displayTextContainer.style.whiteSpace = 'nowrap';
+                
+                // Aplicar transform (solo espejo, ya que no hay audio)
+                displayText.style.transform = transformSettings.join(' ');
+
+            } else {
+                // --- MODO ESTÁTICO ---
+                // (Sin audio y sin movimiento)
+                
+                // Configurar para estático
+                displayText.style.paddingLeft = '0';
+                displayTextContainer.style.whiteSpace = 'normal';
+                
+                // Aplicar transform (solo espejo, ya que no hay audio)
+                displayText.style.transform = transformSettings.join(' ');
             }
 
-            // 5.3. Aplicar las animaciones combinadas (o ninguna)
+            // 6.4. Aplicar la cadena de animación final
             if (animationSettings.length > 0) {
                 displayText.style.animation = animationSettings.join(', ');
             } else {
-                displayText.style.animation = 'none'; // Estático y sin parpadeo
+                displayText.style.animation = 'none';
             }
-            // --- *** FIN DE LA CORRECCIÓN *** ---
-
-            // 6. Cambiar de pantalla
+            // --- FIN Lógica de Animación ---
+            
+            // 7. Cambiar de pantalla
             configScreen.classList.add('hidden');
             displayScreen.classList.remove('hidden');
             displayScreen.classList.add('flex');
 
-            // 7. Activar Fullscreen y bloqueo horizontal
+            // 8. Activar Fullscreen y bloqueo horizontal
             openFullscreenAndLock();
         });
 
-        // --- Event Listener para el Botón de SALIR ---
+        // --- Event Listener para el Botón de SALIR (Actualizado) ---
         exitBtn.addEventListener('click', () => {
             closeFullscreenAndUnlock();
+            stopAudioReaction(); // ¡Importante apagar el mic!
             
             displayScreen.classList.add('hidden');
             displayScreen.classList.remove('flex');
             configScreen.classList.remove('hidden');
             
-            // Apagamos animaciones al salir
             displayText.style.animation = 'none';
+            displayText.style.transform = 'none';
         });
         
-        // --- Listener para salida de fullscreen (ej. tecla 'Esc') ---
+        // --- Listener para salida de fullscreen (Actualizado) ---
         document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            if (!document.fullscreenElement) {
                 if (!displayScreen.classList.contains('hidden')) {
+                    stopAudioReaction(); // ¡Importante apagar el mic!
+                    closeFullscreenAndUnlock(); // Asegurar que desbloquee orientación
+                    
                     displayScreen.classList.add('hidden');
                     displayScreen.classList.remove('flex');
                     configScreen.classList.remove('hidden');
                     
-                    // Apagamos animaciones
                     displayText.style.animation = 'none';
-                    
-                    try {
-                        screen.orientation.unlock();
-                    } catch(e) {}
+                    displayText.style.transform = 'none';
                 }
             }
         });
